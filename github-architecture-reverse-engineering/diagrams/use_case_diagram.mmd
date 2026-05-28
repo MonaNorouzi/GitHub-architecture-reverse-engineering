@@ -1,0 +1,25 @@
+flowchart LR
+    %% External Actors
+    Dev([Developer])
+    Maintainer([Repository Maintainer])
+    CIBot([CI/CD Microservice])
+
+    %% System Boundary
+    subgraph GitHub Core Platform
+        UC1((Initialize Branch & Push))
+        UC2((Instantiate Pull Request))
+        UC3((Execute Integration Tests))
+        UC4((Conduct Code Review))
+        UC5((Execute Merge Transaction))
+    end
+
+    %% Actor Relationships
+    Dev --> UC1
+    Dev --> UC2
+    CIBot --> UC3
+    Maintainer --> UC4
+    Maintainer --> UC5
+
+    %% Internal Dependencies
+    UC2 -. Async Trigger .-> UC3
+    UC3 -. CI Status Payload .-> UC5

@@ -1,0 +1,40 @@
+flowchart TB
+    %% External Interfaces
+    Client[Client Browser / Git CLI]
+
+    %% Network Routing
+    LB[Load Balancers / HAProxy]
+
+    %% Transient Data / Optimization
+    subgraph Caching Layer
+        Redis[(Redis / Memcached Clusters)]
+    end
+
+    %% Core Application
+    subgraph Monolithic Core
+        Routing[API Gateway / Router]
+        Rails[Ruby on Rails Application]
+        Routing --> Rails
+    end
+
+    %% Decoupled Services
+    subgraph Event-Driven Architecture
+        Kafka[Kafka Message Broker]
+        Actions[GitHub Actions K8s Cluster]
+        Kafka --> Actions
+    end
+
+    %% Persistent Storage
+    subgraph Persistence Layer
+        DB[(MySQL / Vitess Shards)]
+        GitFS[(Spokes / Git File Servers)]
+    end
+
+    %% Component Interconnections
+    Client --> LB
+    LB --> Routing
+    Routing --> Redis
+    Rails --> DB
+    Rails --> GitFS
+    Rails --> Kafka
+    Actions -. Status Callback .-> Routing

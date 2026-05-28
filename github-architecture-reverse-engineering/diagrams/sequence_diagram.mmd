@@ -1,0 +1,31 @@
+sequenceDiagram
+    actor Dev as Developer
+    participant API as API Gateway (Routing)
+    participant Rails as Rails Monolith
+    participant DB as Relational DB (MySQL)
+    participant Worker as Async Job (Diffing)
+    participant CI as GitHub Actions
+    actor Maint as Maintainer
+
+    Dev->>API: POST /pulls (Create PR)
+    API->>Rails: Route Request
+    Rails->>DB: INSERT Issue (State: Open)
+    Rails->>DB: INSERT PR (Mergeable: NULL)
+    Rails-->>API: 201 Created Response
+    Rails->>Worker: Enqueue Background Mergeability Check
+    Rails->>CI: Dispatch Webhook (Event: pull_request)
+    
+    Worker->>Worker: Traverse Git DAG & Calculate Diff
+    Worker->>DB: UPDATE PR (Mergeable: True)
+    
+    CI->>CI: Execute CI/CD Pipeline
+    CI->>Rails: PATCH /status (Payload: Success)
+    Rails->>DB: UPDATE Commit Status (Status: Success)
+    
+    Maint->>API: POST /merge (Accept PR)
+    API->>Rails: Route Merge Request
+    Rails->>Worker: Execute Low-level `git merge`
+    Worker-->>Rails: Merge Confirmation
+    Rails->>DB: UPDATE Issue (State: Closed)
+    Rails->>DB: UPDATE PR (State: Merged)
+    Rails-->>API: Return Finalized State UI Render

@@ -1,0 +1,35 @@
+erDiagram
+    USER ||--o{ REPOSITORY : owns
+    USER ||--o{ ISSUE : authors
+    REPOSITORY ||--o{ ISSUE : contains
+    REPOSITORY ||--o{ COMMIT : stores
+    ISSUE ||--o| PULL_REQUEST : "polymorphic extension"
+    PULL_REQUEST ||--o{ COMMIT : encapsulates
+
+    USER {
+        int id PK
+        string username
+        string email
+    }
+    REPOSITORY {
+        int id PK
+        int owner_id FK
+        string repository_name
+    }
+    ISSUE {
+        int id PK
+        int repository_id FK
+        int author_id FK
+        string lifecycle_state "Open / Closed"
+    }
+    PULL_REQUEST {
+        int issue_id PK, FK
+        string head_branch_ref
+        string base_branch_ref
+        boolean mergeable_status
+    }
+    COMMIT {
+        string sha_hash PK
+        int repository_id FK
+        string tree_sha_pointer
+    }
